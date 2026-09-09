@@ -53,7 +53,9 @@ juce_add_plugin(Click
     FORMATS                 ${CLICK_FORMATS}
     PRODUCT_NAME            "Click"
     IS_SYNTH                TRUE
-    NEEDS_MIDI_INPUT        FALSE
+    # Live only offers instruments on MIDI tracks, and refuses to instantiate
+    # one that declares no event input bus. Click ignores incoming MIDI.
+    NEEDS_MIDI_INPUT        TRUE
     NEEDS_MIDI_OUTPUT       FALSE
     IS_MIDI_EFFECT          FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE

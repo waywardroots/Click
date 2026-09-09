@@ -41,9 +41,14 @@ public:
     bool hasEditor() const override { return true; }
 
     const juce::String getName() const override { return JucePlugin_Name; }
-    bool acceptsMidi() const override { return false; }
-    bool producesMidi() const override { return false; }
-    bool isMidiEffect() const override { return false; }
+
+    // Driven by the CMake NEEDS_MIDI_* flags so the wrapper's declared buses
+    // and these answers can never disagree. Ableton (and auval) reject an
+    // instrument that reports no MIDI input, so Click accepts MIDI and ignores
+    // it rather than claiming to have no input at all.
+    bool acceptsMidi() const override { return JucePlugin_WantsMidiInput != 0; }
+    bool producesMidi() const override { return JucePlugin_ProducesMidiOutput != 0; }
+    bool isMidiEffect() const override { return JucePlugin_IsMidiEffect != 0; }
     double getTailLengthSeconds() const override { return 2.0; }
 
     int getNumPrograms() override { return 1; }
