@@ -14,7 +14,6 @@ namespace
 
 ClickAudioProcessor::ClickAudioProcessor()
     : juce::AudioProcessor (BusesProperties()
-                                .withInput ("Input", juce::AudioChannelSet::stereo(), true)
                                 .withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
       apvts (*this, nullptr, "CLICK", params::createLayout())
 {
@@ -53,19 +52,13 @@ ClickAudioProcessor::~ClickAudioProcessor()
 // audio
 // ---------------------------------------------------------------------------
 
-void ClickAudioProcessor::prepareToPlay (double sampleRate, int maximumExpectedSamplesPerBlock)
+void ClickAudioProcessor::prepareToPlay (double sampleRate, int)
 {
     deviceRate = sampleRate > 0.0 ? sampleRate : 44100.0;
 
     voices.prepare (deviceRate);
     outputGain.reset (deviceRate, 0.02);
     outputGain.setCurrentAndTargetValue (juce::Decibels::decibelsToGain (outputGainParam->load(), -60.0f));
-
-    // Clicks are rendered into their own buffer so that the level control only
-    // affects the click and never the audio passing through.
-    clickBuffer.setSize (juce::jmax (1, getTotalNumOutputChannels()),
-                         juce::jmax (1, maximumExpectedSamplesPerBlock));
-    clickBuffer.clear();
 
     freeRunBeats = 0.0;
     displayStep.store (-1);
@@ -80,15 +73,8 @@ bool ClickAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) co
 {
     const auto& output = layouts.getMainOutputChannelSet();
 
-    if (output != juce::AudioChannelSet::mono()
-        && output != juce::AudioChannelSet::stereo())
-        return false;
-
-    const auto& input = layouts.getMainInputChannelSet();
-
-    // Insert on a track (input matches output), or run with no input at all so
-    // the plugin still works as a plain generator.
-    return input == output || input.isDisabled();
+    return output == juce::AudioChannelSet::mono()
+        || output == juce::AudioChannelSet::stereo();
 }
 
 void ClickAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
@@ -96,21 +82,10 @@ void ClickAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
     juce::ScopedNoDenormals noDenormals;
 
     const auto numSamples = buffer.getNumSamples();
+    buffer.clear();
 
     if (numSamples <= 0)
         return;
-
-    // Whatever the track feeds in passes straight through untouched; only
-    // output channels with no matching input need silencing.
-    for (auto channel = getTotalNumInputChannels(); channel < getTotalNumOutputChannels(); ++channel)
-        buffer.clear (channel, 0, numSamples);
-
-    // Only reallocates if the host exceeds the block size it promised.
-    if (clickBuffer.getNumSamples() < numSamples
-        || clickBuffer.getNumChannels() < buffer.getNumChannels())
-        clickBuffer.setSize (buffer.getNumChannels(), numSamples, false, false, true);
-
-    clickBuffer.clear (0, numSamples);
 
     if (const auto requested = auditionRequest.exchange (-1); requested >= 0)
         triggerSlot (requested, 1.0f);
@@ -180,7 +155,7 @@ void ClickAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
 
                 if (offset > cursor)
                 {
-                    voices.render (clickBuffer, cursor, offset - cursor);
+                    voices.render (buffer, cursor, offset - cursor);
                     cursor = offset;
                 }
 
@@ -189,18 +164,13 @@ void ClickAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
         }
     }
 
-    voices.render (clickBuffer, cursor, numSamples - cursor);
+    voices.render (buffer, cursor, numSamples - cursor);
 
     if (! syncToHost)
         freeRunBeats += blockBeats;
 
-    // The level control trims the click alone, never the audio passing through.
     outputGain.setTargetValue (juce::Decibels::decibelsToGain (outputGainParam->load(), -60.0f));
-    outputGain.applyGain (clickBuffer, numSamples);
-
-    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
-        buffer.addFrom (channel, 0, clickBuffer,
-                        juce::jmin (channel, clickBuffer.getNumChannels() - 1), 0, numSamples);
+    outputGain.applyGain (buffer, numSamples);
 }
 
 void ClickAudioProcessor::fireStep (int patternIndex)

@@ -52,16 +52,15 @@ juce_add_plugin(Click
     PLUGIN_CODE             Clik
     FORMATS                 ${CLICK_FORMATS}
     PRODUCT_NAME            "Click"
-    # An audio effect, not an instrument: hosts allow only one instrument per
-    # track, so an effect is the only form that can be inserted after an
-    # existing instrument. Click passes audio through and mixes itself on top.
-    IS_SYNTH                FALSE
-    NEEDS_MIDI_INPUT        FALSE
+    # Live only offers instruments on MIDI tracks, and refuses to instantiate
+    # one that declares no event input bus. Click ignores incoming MIDI.
+    IS_SYNTH                TRUE
+    NEEDS_MIDI_INPUT        TRUE
     NEEDS_MIDI_OUTPUT       FALSE
     IS_MIDI_EFFECT          FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
     COPY_PLUGIN_AFTER_BUILD FALSE
-    VST3_CATEGORIES         "Fx" "Tools")
+    VST3_CATEGORIES         "Instrument" "Tools")
 
 target_sources(Click PRIVATE
     Source/ClickLibrary.cpp
