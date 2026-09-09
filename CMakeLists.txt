@@ -9,6 +9,12 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "" FORCE)
 endif()
 
+if(APPLE)
+    # Ship a single binary that runs natively on both Apple silicon and Intel.
+    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "macOS build architectures")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum supported macOS version")
+endif()
+
 # ---------------------------------------------------------------------------
 # JUCE
 #
@@ -32,12 +38,19 @@ endif()
 # ---------------------------------------------------------------------------
 # plugin target
 # ---------------------------------------------------------------------------
+# Audio Units are macOS only; VST3 and the standalone app build everywhere.
+set(CLICK_FORMATS VST3 Standalone)
+
+if(APPLE)
+    list(APPEND CLICK_FORMATS AU)
+endif()
+
 juce_add_plugin(Click
     COMPANY_NAME            "Wayward Roots"
     BUNDLE_ID               "com.waywardroots.click"
     PLUGIN_MANUFACTURER_CODE Wayr
     PLUGIN_CODE             Clik
-    FORMATS                 VST3 Standalone
+    FORMATS                 ${CLICK_FORMATS}
     PRODUCT_NAME            "Click"
     IS_SYNTH                TRUE
     NEEDS_MIDI_INPUT        FALSE

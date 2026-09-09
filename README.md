@@ -1,6 +1,6 @@
 # Click
 
-A step-sequenced click / metronome generator plugin (VST3 + standalone), built with JUCE.
+A step-sequenced click / metronome generator plugin (VST3, AU, standalone), built with JUCE.
 
 Ten stock click sounds, a 32-step sequencer with accents and swing, and a built-in
 sample editor so you can shape the click — or load your own WAV and edit that instead.
@@ -53,7 +53,35 @@ top, so the effect of the filters, envelope and trim is visible as you work.
 Every control is a real automatable parameter, and the plugin saves its full state
 (including the path of any user sample) with the session.
 
-## Building
+## Builds
+
+Every push builds Windows, macOS and Linux on GitHub Actions
+(`.github/workflows/build.yml`). Installable plugins are attached to each run as
+downloadable artefacts — open the **Actions** tab, pick a run, and grab
+`Click-Windows`, `Click-macOS` or `Click-Linux` from the Artifacts section.
+
+| Platform | Formats | Notes |
+| --- | --- | --- |
+| Windows | VST3, Standalone | x64 |
+| macOS | VST3, AU, Standalone | Universal (arm64 + x86_64), macOS 10.13+ |
+| Linux | VST3, Standalone | x64 |
+
+The macOS artefacts are **not code signed or notarised**. To load them locally
+you will need to clear quarantine:
+
+```bash
+xattr -dr com.apple.quarantine Click.vst3 Click.component
+```
+
+### Installing
+
+| Platform | VST3 | AU |
+| --- | --- | --- |
+| Windows | `C:\Program Files\Common Files\VST3\` | — |
+| macOS | `~/Library/Audio/Plug-Ins/VST3/` | `~/Library/Audio/Plug-Ins/Components/` |
+| Linux | `~/.vst3/` | — |
+
+## Building locally
 
 Requires CMake 3.22+ and a C++17 compiler. JUCE 8.0.4 is fetched automatically.
 
@@ -64,21 +92,27 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release
 ```
 
+Artefacts land in `build/Click_artefacts/Release/`.
+
+Platform specifics:
+
+- **Windows** — Visual Studio 2022 (Desktop C++ workload). The commands above
+  work from any shell with CMake on `PATH`.
+- **macOS** — Xcode command line tools. Builds universal by default; override
+  with `-DCMAKE_OSX_ARCHITECTURES=arm64` for a single-architecture build.
+- **Linux** — install the JUCE development packages first:
+
+  ```bash
+  sudo apt install libasound2-dev libfreetype-dev libfontconfig1-dev \
+    libx11-dev libxcomposite-dev libxcursor-dev libxext-dev \
+    libxinerama-dev libxrandr-dev libxrender-dev
+  ```
+
 To build against a JUCE checkout you already have (also useful offline):
 
 ```bash
 cmake -B build -DCLICK_JUCE_PATH=/path/to/JUCE
 cmake --build build
-```
-
-Artefacts land in `build/Click_artefacts/Release/`:
-`VST3/Click.vst3` and `Standalone/Click`.
-
-**Linux** also needs the usual JUCE development packages:
-
-```bash
-sudo apt install libasound2-dev libfreetype-dev libx11-dev libxcomposite-dev \
-  libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev
 ```
 
 ### Regenerating the stock clicks
