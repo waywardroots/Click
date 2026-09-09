@@ -91,6 +91,10 @@ public:
 private:
     void timerCallback() override;
 
+    /** Output gain including the mute, so prepareToPlay and processBlock
+        cannot disagree about the level. */
+    float currentOutputGain() const;
+
     int readSourceIndex (int slot) const;
     void reloadSource (int slot);
     void renderSlot (int slot);
@@ -121,6 +125,7 @@ private:
     std::atomic<float>* divisionParam = nullptr;
     std::atomic<float>* swingParam = nullptr;
     std::atomic<float>* outputGainParam = nullptr;
+    std::atomic<float>* muteParam = nullptr;
     std::array<std::atomic<float>*, (size_t) maxSteps> stepParams {};
     std::array<std::atomic<float>*, (size_t) numSlots> tuneParams {};
 

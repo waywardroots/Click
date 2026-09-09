@@ -34,6 +34,7 @@ namespace params
     inline constexpr const char* division   = "division";
     inline constexpr const char* swing      = "swing";
     inline constexpr const char* outputGain = "outputGain";
+    inline constexpr const char* mute       = "mute";
 
     // --- per slot (suffixed with the slot prefix) --------------------------
     inline constexpr const char* source    = "Source";

@@ -13,6 +13,9 @@ sample editor so you can shape the click — or load your own WAV and edit that 
 - Divisions: 1/4, 1/8, 1/8T, 1/16, 1/16T, 1/32
 - Swing (delays odd-numbered steps by up to 75% of a step)
 - Locks to the host transport and tempo, or free-runs at its own BPM
+- **Mute** silences the audio without stopping anything: the sequencer keeps
+  running, the playhead keeps moving, and voices already sounding carry on, so
+  unmuting drops you straight back in time rather than restarting
 - Sample-accurate scheduling: steps fire at the right offset *inside* the buffer,
   not just at block boundaries
 

@@ -28,6 +28,7 @@ ClickAudioProcessor::ClickAudioProcessor()
     divisionParam   = apvts.getRawParameterValue (params::division);
     swingParam      = apvts.getRawParameterValue (params::swing);
     outputGainParam = apvts.getRawParameterValue (params::outputGain);
+    muteParam       = apvts.getRawParameterValue (params::mute);
 
     for (int step = 0; step < maxSteps; ++step)
         stepParams[(size_t) step] = apvts.getRawParameterValue (params::stepParam (step));
@@ -52,13 +53,21 @@ ClickAudioProcessor::~ClickAudioProcessor()
 // audio
 // ---------------------------------------------------------------------------
 
+float ClickAudioProcessor::currentOutputGain() const
+{
+    if (muteParam->load() > 0.5f)
+        return 0.0f;
+
+    return juce::Decibels::decibelsToGain (outputGainParam->load(), -60.0f);
+}
+
 void ClickAudioProcessor::prepareToPlay (double sampleRate, int)
 {
     deviceRate = sampleRate > 0.0 ? sampleRate : 44100.0;
 
     voices.prepare (deviceRate);
     outputGain.reset (deviceRate, 0.02);
-    outputGain.setCurrentAndTargetValue (juce::Decibels::decibelsToGain (outputGainParam->load(), -60.0f));
+    outputGain.setCurrentAndTargetValue (currentOutputGain());
 
     freeRunBeats = 0.0;
     displayStep.store (-1);
@@ -169,7 +178,9 @@ void ClickAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
     if (! syncToHost)
         freeRunBeats += blockBeats;
 
-    outputGain.setTargetValue (juce::Decibels::decibelsToGain (outputGainParam->load(), -60.0f));
+    // Muting only zeroes the gain: the sequencer, the voices and the playhead
+    // all keep running, and the smoothed ramp keeps the transition click-free.
+    outputGain.setTargetValue (currentOutputGain());
     outputGain.applyGain (buffer, numSamples);
 }
 

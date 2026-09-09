@@ -68,6 +68,7 @@ private:
 
     // --- global controls --------------------------------------------------
     juce::ToggleButton hostSyncButton { "Host Sync" };
+    juce::ToggleButton muteButton { "Mute" };
     LabelledSlider tempoSlider { "TEMPO", juce::Slider::RotaryHorizontalVerticalDrag };
     LabelledSlider stepsSlider { "STEPS", juce::Slider::RotaryHorizontalVerticalDrag };
     LabelledSlider swingSlider { "SWING", juce::Slider::RotaryHorizontalVerticalDrag };
@@ -75,7 +76,7 @@ private:
     juce::Label divisionLabel;
     juce::ComboBox divisionBox;
 
-    std::unique_ptr<ButtonAttachment> hostSyncAttachment;
+    std::unique_ptr<ButtonAttachment> hostSyncAttachment, muteAttachment;
     std::unique_ptr<SliderAttachment> tempoAttachment, stepsAttachment, swingAttachment, outputAttachment;
     std::unique_ptr<ComboAttachment> divisionAttachment;
 

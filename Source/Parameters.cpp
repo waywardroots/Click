@@ -93,6 +93,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout createLayout()
         juce::NormalisableRange<float> { -60.0f, 12.0f, 0.1f }, 0.0f,
         juce::AudioParameterFloatAttributes().withLabel ("dB")));
 
+    // Silences the audio only. The sequencer, the voices and the playhead all
+    // carry on exactly as they were.
+    layout.add (std::make_unique<juce::AudioParameterBool> (
+        id (mute), "Mute", false));
+
     // --- the pattern ------------------------------------------------------
     const juce::StringArray stepChoices { "Off", "Regular", "Accent" };
 

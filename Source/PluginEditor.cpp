@@ -26,6 +26,10 @@ ClickAudioProcessorEditor::ClickAudioProcessorEditor (ClickAudioProcessor& proce
     addAndMakeVisible (hostSyncButton);
     hostSyncAttachment = std::make_unique<ButtonAttachment> (state, params::hostSync, hostSyncButton);
 
+    muteButton.setColour (juce::ToggleButton::textColourId, accentColour);
+    addAndMakeVisible (muteButton);
+    muteAttachment = std::make_unique<ButtonAttachment> (state, params::mute, muteButton);
+
     for (auto* control : { &tempoSlider, &stepsSlider, &swingSlider, &outputSlider })
         addAndMakeVisible (control);
 
@@ -202,6 +206,9 @@ void ClickAudioProcessorEditor::timerCallback()
 
     status << (synced ? "  -  host tempo" : "  -  internal tempo");
 
+    if (processor.apvts.getRawParameterValue (params::mute)->load() > 0.5f)
+        status << "  -  MUTED";
+
     if (status != statusLabel.getText())
         statusLabel.setText (status, juce::dontSendNotification);
 }
@@ -309,7 +316,10 @@ void ClickAudioProcessorEditor::resized()
     const auto controlWidth = controls.getWidth() / 6;
 
     auto syncArea = controls.removeFromLeft (controlWidth);
-    hostSyncButton.setBounds (syncArea.withSizeKeepingCentre (controlWidth - 16, 28));
+    auto toggleColumn = syncArea.withSizeKeepingCentre (controlWidth - 16, 62);
+    hostSyncButton.setBounds (toggleColumn.removeFromTop (28));
+    toggleColumn.removeFromTop (6);
+    muteButton.setBounds (toggleColumn.removeFromTop (28));
 
     tempoSlider.setBounds (controls.removeFromLeft (controlWidth).reduced (4, 0));
 
