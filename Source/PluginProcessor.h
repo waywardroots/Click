@@ -112,6 +112,10 @@ private:
     VoicePool voices;
     double deviceRate = 44100.0;
 
+    /** Clicks are mixed here first, so the level control never touches the
+        audio passing through from the track. */
+    juce::AudioBuffer<float> clickBuffer;
+
     // cached parameter pointers
     std::atomic<float>* hostSyncParam = nullptr;
     std::atomic<float>* tempoParam = nullptr;

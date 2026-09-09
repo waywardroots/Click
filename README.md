@@ -2,6 +2,12 @@
 
 A step-sequenced click / metronome generator plugin (VST3, AU, standalone), built with JUCE.
 
+Click is an **audio effect**, not an instrument, so it can be inserted on any
+track - including one that already has an instrument on it. Audio passes
+through untouched and the click is mixed on top; the Output control trims the
+click alone. It works equally well on an audio track, on the master bus, or with
+no input at all.
+
 Ten stock click sounds, a 32-step sequencer with accents and swing, and a built-in
 sample editor so you can shape the click — or load your own WAV and edit that instead.
 
@@ -80,6 +86,10 @@ xattr -dr com.apple.quarantine Click.vst3 Click.component
 | Windows | `C:\Program Files\Common Files\VST3\` | — |
 | macOS | `~/Library/Audio/Plug-Ins/VST3/` | `~/Library/Audio/Plug-Ins/Components/` |
 | Linux | `~/.vst3/` | — |
+
+Click appears under **audio effects**, not instruments. In Ableton Live drop it
+into a track's device chain after the instrument, or onto an audio track or the
+master.
 
 ## Building locally
 
