@@ -13,10 +13,12 @@ struct EditSettings
     float start = 0.0f;        // normalised trim start (0-1)
     float end = 1.0f;          // normalised trim end   (0-1)
     float gainDb = 0.0f;
-    float attackMs = 0.0f;
-    float decayMs = 0.0f;
+    // Stage lengths are a share (0-1) of the trimmed clip, not absolute times,
+    // so the whole of each control's range is useful on any sample length.
+    float attackPortion = 0.0f;
+    float decayPortion = 0.0f;
     float sustainLevel = 1.0f;     // 0-1; 1 with no decay leaves the sample alone
-    float releaseMs = 0.0f;
+    float releasePortion = 0.0f;
     float highPassHz = 20.0f;      // 20 Hz disables the filter
     float lowPassHz = 20000.0f;    // 20 kHz disables the filter
     bool reverse = false;
@@ -27,10 +29,10 @@ struct EditSettings
         return start == other.start
             && end == other.end
             && gainDb == other.gainDb
-            && attackMs == other.attackMs
-            && decayMs == other.decayMs
+            && attackPortion == other.attackPortion
+            && decayPortion == other.decayPortion
             && sustainLevel == other.sustainLevel
-            && releaseMs == other.releaseMs
+            && releasePortion == other.releasePortion
             && highPassHz == other.highPassHz
             && lowPassHz == other.lowPassHz
             && reverse == other.reverse

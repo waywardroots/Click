@@ -72,12 +72,15 @@ double envelopeValueAt (double timeSeconds, double lengthSeconds, const EditSett
 
     const auto time = juce::jlimit (0.0, lengthSeconds, timeSeconds);
 
-    // Fit the stages inside the clip: release is reserved at the end, then
-    // attack and decay take what is left, so no stage can overrun the sample.
-    const auto release = juce::jlimit (0.0, lengthSeconds, (double) settings.releaseMs * 0.001);
+    // Stage lengths are shares of the clip, so a full knob always spans the
+    // whole sample. Release is reserved at the end, then attack and decay take
+    // what is left, so no combination can overrun the sample.
+    const auto release = juce::jlimit (0.0, 1.0, (double) settings.releasePortion) * lengthSeconds;
     const auto beforeRelease = lengthSeconds - release;
-    const auto attack = juce::jlimit (0.0, beforeRelease, (double) settings.attackMs * 0.001);
-    const auto decay = juce::jlimit (0.0, beforeRelease - attack, (double) settings.decayMs * 0.001);
+    const auto attack = juce::jmin (juce::jlimit (0.0, 1.0, (double) settings.attackPortion) * lengthSeconds,
+                                    beforeRelease);
+    const auto decay = juce::jmin (juce::jlimit (0.0, 1.0, (double) settings.decayPortion) * lengthSeconds,
+                                   beforeRelease - attack);
     const auto sustain = juce::jlimit (0.0, 1.0, (double) settings.sustainLevel);
 
     double envelope;

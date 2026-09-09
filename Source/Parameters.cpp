@@ -19,13 +19,11 @@ namespace
         return range;
     }
 
-    /** Millisecond range starting at zero, skewed so the short times that
-        matter for shaping a click get most of the travel. */
-    juce::NormalisableRange<float> timeRange (float maxMs, float skewCentreMs)
+    /** Envelope stage lengths are a share of the trimmed clip, so the full
+        travel of every knob is useful whatever the sample's length. */
+    juce::NormalisableRange<float> portionRange()
     {
-        juce::NormalisableRange<float> range { 0.0f, maxMs, 0.01f };
-        range.setSkewForCentre (skewCentreMs);
-        return range;
+        return { 0.0f, 100.0f, 0.1f };
     }
 } // namespace
 
@@ -149,17 +147,19 @@ juce::AudioProcessorValueTreeState::ParameterLayout createLayout()
             juce::NormalisableRange<float> { -24.0f, 24.0f, 0.01f }, 0.0f,
             juce::AudioParameterFloatAttributes().withLabel ("st")));
 
-        // The envelope defaults to a no-op: no attack or release, and full
+        // Stage lengths are a percentage of the trimmed clip rather than an
+        // absolute time, so no part of a knob's travel is wasted on a short
+        // click. The defaults are a no-op: no attack or release, and full
         // sustain, so a freshly loaded sample is left exactly as it is.
         layout.add (std::make_unique<juce::AudioParameterFloat> (
             id (slotParam (slot, attack)), name + "Attack",
-            timeRange (200.0f, 15.0f), 0.0f,
-            juce::AudioParameterFloatAttributes().withLabel ("ms")));
+            portionRange(), 0.0f,
+            juce::AudioParameterFloatAttributes().withLabel ("%")));
 
         layout.add (std::make_unique<juce::AudioParameterFloat> (
             id (slotParam (slot, decay)), name + "Decay",
-            timeRange (500.0f, 60.0f), 0.0f,
-            juce::AudioParameterFloatAttributes().withLabel ("ms")));
+            portionRange(), 0.0f,
+            juce::AudioParameterFloatAttributes().withLabel ("%")));
 
         layout.add (std::make_unique<juce::AudioParameterFloat> (
             id (slotParam (slot, sustain)), name + "Sustain",
@@ -168,8 +168,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout createLayout()
 
         layout.add (std::make_unique<juce::AudioParameterFloat> (
             id (slotParam (slot, release)), name + "Release",
-            timeRange (500.0f, 60.0f), 0.0f,
-            juce::AudioParameterFloatAttributes().withLabel ("ms")));
+            portionRange(), 0.0f,
+            juce::AudioParameterFloatAttributes().withLabel ("%")));
 
         layout.add (std::make_unique<juce::AudioParameterFloat> (
             id (slotParam (slot, highPass)), name + "High Pass",

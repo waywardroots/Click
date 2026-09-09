@@ -314,10 +314,10 @@ EditSettings ClickAudioProcessor::readSettings (int slot) const
     settings.start = value (params::startTrim);
     settings.end = value (params::endTrim);
     settings.gainDb = value (params::gain);
-    settings.attackMs = value (params::attack);
-    settings.decayMs = value (params::decay);
+    settings.attackPortion = value (params::attack) * 0.01f;
+    settings.decayPortion = value (params::decay) * 0.01f;
     settings.sustainLevel = value (params::sustain) * 0.01f;
-    settings.releaseMs = value (params::release);
+    settings.releasePortion = value (params::release) * 0.01f;
     settings.highPassHz = value (params::highPass);
     settings.lowPassHz = value (params::lowPass);
     settings.reverse = value (params::reverse) > 0.5f;

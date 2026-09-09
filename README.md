@@ -41,10 +41,18 @@ the plugin has no runtime file dependencies.
 | Start / End | 0–100% | Draggable handles on the waveform |
 | Level | −36 to +12 dB | |
 | Tune | ±24 semitones | Applied at playback; baked in on export |
-| Attack | 0–200 ms | |
-| Decay | 0–500 ms | Falls to the sustain level |
+| Attack | 0–100% of clip | Rise from silence |
+| Decay | 0–100% of clip | Falls to the sustain level |
 | Sustain | 0–100% | Level held through the body of the click |
-| Release | 0–500 ms | Fade ending exactly on the last sample |
+| Release | 0–100% of clip | Fade ending exactly on the last sample |
+
+Envelope stage lengths are a percentage of the trimmed clip rather than an
+absolute time, so the full travel of every control stays useful whether the
+sample is a 45 ms tick or a 600 ms bell.
+
+Decay falls from the peak *to the sustain level*, so with Sustain at 100% it has
+nothing to do — the control is greyed out in that case. Lower Sustain to make
+Decay bite.
 | High Pass | 20 Hz–2 kHz | 20 Hz = off |
 | Low Pass | 200 Hz–20 kHz | 20 kHz = off |
 | Reverse | on/off | |

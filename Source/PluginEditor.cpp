@@ -196,6 +196,15 @@ void ClickAudioProcessorEditor::timerCallback()
     const auto synced = processor.apvts.getRawParameterValue (params::hostSync)->load() > 0.5f;
     tempoSlider.slider.setEnabled (! synced);
 
+    // Decay falls from the peak to the sustain level, so at full sustain there
+    // is nothing for it to do. Grey it out rather than let it sit there looking
+    // active but inert.
+    const auto sustainFull =
+        processor.apvts.getRawParameterValue (params::slotParam (activeSlot, params::sustain))->load() > 99.5f;
+
+    decaySlider.slider.setEnabled (! sustainFull);
+    decaySlider.label.setAlpha (sustainFull ? 0.45f : 1.0f);
+
     juce::String status;
 
     if (processor.isRunning())
