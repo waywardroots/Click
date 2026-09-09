@@ -66,6 +66,7 @@ juce_add_plugin(Click
 target_sources(Click PRIVATE
     Source/ClickLibrary.cpp
     Source/ClickSlot.cpp
+    Source/EnvelopeDisplay.cpp
     Source/Parameters.cpp
     Source/PluginEditor.cpp
     Source/PluginProcessor.cpp

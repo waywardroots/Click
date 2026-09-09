@@ -14,7 +14,9 @@ struct EditSettings
     float end = 1.0f;          // normalised trim end   (0-1)
     float gainDb = 0.0f;
     float attackMs = 0.0f;
-    float decayPercent = 100.0f;   // 100% keeps the natural tail
+    float decayMs = 0.0f;
+    float sustainLevel = 1.0f;     // 0-1; 1 with no decay leaves the sample alone
+    float releaseMs = 0.0f;
     float highPassHz = 20.0f;      // 20 Hz disables the filter
     float lowPassHz = 20000.0f;    // 20 kHz disables the filter
     bool reverse = false;
@@ -26,7 +28,9 @@ struct EditSettings
             && end == other.end
             && gainDb == other.gainDb
             && attackMs == other.attackMs
-            && decayPercent == other.decayPercent
+            && decayMs == other.decayMs
+            && sustainLevel == other.sustainLevel
+            && releaseMs == other.releaseMs
             && highPassHz == other.highPassHz
             && lowPassHz == other.lowPassHz
             && reverse == other.reverse
@@ -35,6 +39,16 @@ struct EditSettings
 
     bool operator!= (const EditSettings& other) const noexcept { return ! (*this == other); }
 };
+
+/** The ADSR value at a point in time, for a clip of the given length.
+
+    The renderer and the envelope display both call this, so what is drawn is
+    always exactly what is applied. The envelope is anchored to the trimmed
+    sample: attack and decay run from the start, sustain holds the body, and
+    release ends precisely at the last sample. Very short fades are folded in at
+    both ends so a click can never begin or end on a discontinuity.
+*/
+double envelopeValueAt (double timeSeconds, double lengthSeconds, const EditSettings& settings);
 
 /** Holds one of the plugin's two click sounds: the raw audio it was loaded
     from, plus the ability to bake the current edit settings into a buffer that

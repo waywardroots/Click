@@ -41,8 +41,10 @@ the plugin has no runtime file dependencies.
 | Start / End | 0–100% | Draggable handles on the waveform |
 | Level | −36 to +12 dB | |
 | Tune | ±24 semitones | Applied at playback; baked in on export |
-| Attack | 0–50 ms | |
-| Decay | 1–100% | 100% keeps the sample's natural tail |
+| Attack | 0–200 ms | |
+| Decay | 0–500 ms | Falls to the sustain level |
+| Sustain | 0–100% | Level held through the body of the click |
+| Release | 0–500 ms | Fade ending exactly on the last sample |
 | High Pass | 20 Hz–2 kHz | 20 Hz = off |
 | Low Pass | 200 Hz–20 kHz | 20 kHz = off |
 | Reverse | on/off | |
@@ -149,6 +151,7 @@ Source/
   PluginProcessor.*         parameters, sequencer, state
   StepGrid.*                the pattern editor
   WaveformDisplay.*         waveform view with draggable trim handles
+  EnvelopeDisplay.*         ADSR curve, drawn from the renderer's own maths
   PluginEditor.*            the UI
 ```
 

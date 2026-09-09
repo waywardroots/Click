@@ -80,6 +80,9 @@ public:
     /** Index of the step most recently reached by the sequencer, or -1. */
     int getDisplayStep() const noexcept { return displayStep.load(); }
 
+    /** The slot's current edit settings, as the renderer sees them. */
+    EditSettings readSettings (int slot) const;
+
     /** True while the sequencer is advancing. */
     bool isRunning() const noexcept { return running.load(); }
 
@@ -88,7 +91,6 @@ public:
 private:
     void timerCallback() override;
 
-    EditSettings readSettings (int slot) const;
     int readSourceIndex (int slot) const;
     void reloadSource (int slot);
     void renderSlot (int slot);

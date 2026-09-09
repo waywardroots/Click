@@ -5,6 +5,7 @@
 #include "PluginProcessor.h"
 #include "StepGrid.h"
 #include "WaveformDisplay.h"
+#include "EnvelopeDisplay.h"
 
 namespace click
 {
@@ -94,23 +95,30 @@ private:
 
     LabelledSlider levelSlider { "LEVEL", juce::Slider::RotaryHorizontalVerticalDrag };
     LabelledSlider tuneSlider { "TUNE", juce::Slider::RotaryHorizontalVerticalDrag };
-    LabelledSlider attackSlider { "ATTACK", juce::Slider::RotaryHorizontalVerticalDrag };
-    LabelledSlider decaySlider { "DECAY", juce::Slider::RotaryHorizontalVerticalDrag };
     LabelledSlider highPassSlider { "HI PASS", juce::Slider::RotaryHorizontalVerticalDrag };
     LabelledSlider lowPassSlider { "LO PASS", juce::Slider::RotaryHorizontalVerticalDrag };
     juce::ToggleButton reverseButton { "Reverse" };
     juce::ToggleButton normaliseButton { "Normalise" };
 
+    // --- ADSR strip along the bottom --------------------------------------
+    EnvelopeDisplay envelopeDisplay;
+    LabelledSlider attackSlider { "ATTACK", juce::Slider::RotaryHorizontalVerticalDrag };
+    LabelledSlider decaySlider { "DECAY", juce::Slider::RotaryHorizontalVerticalDrag };
+    LabelledSlider sustainSlider { "SUSTAIN", juce::Slider::RotaryHorizontalVerticalDrag };
+    LabelledSlider releaseSlider { "RELEASE", juce::Slider::RotaryHorizontalVerticalDrag };
+
     std::unique_ptr<ComboAttachment> sourceAttachment;
-    std::unique_ptr<SliderAttachment> levelAttachment, tuneAttachment, attackAttachment,
-                                      decayAttachment, highPassAttachment, lowPassAttachment;
+    std::unique_ptr<SliderAttachment> levelAttachment, tuneAttachment, highPassAttachment,
+                                      lowPassAttachment, attackAttachment, decayAttachment,
+                                      sustainAttachment, releaseAttachment;
     std::unique_ptr<ButtonAttachment> reverseAttachment, normaliseAttachment;
 
     std::unique_ptr<juce::FileChooser> chooser;
     juce::Label statusLabel;
 
-    /** Backdrop for the slot editor, filled in paint() and set in resized(). */
+    /** Backdrops filled in paint() and set in resized(). */
     juce::Rectangle<int> panelBounds;
+    juce::Rectangle<int> adsrBounds;
 
     int activeSlot = accentSlot;
 

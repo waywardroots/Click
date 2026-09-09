@@ -46,7 +46,7 @@ namespace
         }
     }
 
-    void applyEnvelope (juce::AudioBuffer<float>& buffer, double rate, float attackMs, float decayPercent)
+    void applyEnvelope (juce::AudioBuffer<float>& buffer, double rate, const EditSettings& settings)
     {
         const auto numFrames = buffer.getNumSamples();
 
@@ -54,47 +54,67 @@ namespace
             return;
 
         const auto lengthSeconds = (double) numFrames / rate;
-        const auto attackFrames = juce::jlimit (0, numFrames, (int) std::round (attackMs * 0.001 * rate));
-
-        // A decay of 100% is a bypass; below that the tail is shortened
-        // exponentially, reaching a very short blip at 1%.
-        const auto shortensTail = decayPercent < 99.5f;
-        const auto normalisedDecay = juce::jlimit (0.01, 1.0, (double) decayPercent * 0.01);
-        const auto tau = juce::jmax (0.0005, lengthSeconds * normalisedDecay * normalisedDecay);
-
-        // Guarantee a click-free start and end regardless of the trim points.
-        const auto fadeInFrames = juce::jlimit (0, numFrames, (int) (0.0005 * rate));
-        const auto fadeOutFrames = juce::jlimit (0, numFrames, (int) (0.002 * rate));
 
         for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
         {
             auto* samples = buffer.getWritePointer (channel);
 
             for (int i = 0; i < numFrames; ++i)
-            {
-                double envelope = 1.0;
-
-                if (attackFrames > 0)
-                    envelope *= juce::jmin (1.0, (double) i / (double) attackFrames);
-                else if (i < fadeInFrames)
-                    envelope *= (double) i / (double) juce::jmax (1, fadeInFrames);
-
-                if (shortensTail)
-                {
-                    const auto timeAfterAttack = juce::jmax (0.0, (double) (i - attackFrames) / rate);
-                    envelope *= std::exp (-timeAfterAttack / tau);
-                }
-
-                const auto framesRemaining = numFrames - 1 - i;
-
-                if (framesRemaining < fadeOutFrames)
-                    envelope *= (double) framesRemaining / (double) juce::jmax (1, fadeOutFrames);
-
-                samples[i] = (float) (samples[i] * envelope);
-            }
+                samples[i] = (float) (samples[i] * envelopeValueAt ((double) i / rate, lengthSeconds, settings));
         }
     }
 } // namespace
+
+double envelopeValueAt (double timeSeconds, double lengthSeconds, const EditSettings& settings)
+{
+    if (lengthSeconds <= 0.0)
+        return 0.0;
+
+    const auto time = juce::jlimit (0.0, lengthSeconds, timeSeconds);
+
+    // Fit the stages inside the clip: release is reserved at the end, then
+    // attack and decay take what is left, so no stage can overrun the sample.
+    const auto release = juce::jlimit (0.0, lengthSeconds, (double) settings.releaseMs * 0.001);
+    const auto beforeRelease = lengthSeconds - release;
+    const auto attack = juce::jlimit (0.0, beforeRelease, (double) settings.attackMs * 0.001);
+    const auto decay = juce::jlimit (0.0, beforeRelease - attack, (double) settings.decayMs * 0.001);
+    const auto sustain = juce::jlimit (0.0, 1.0, (double) settings.sustainLevel);
+
+    double envelope;
+
+    if (attack > 0.0 && time < attack)
+    {
+        envelope = time / attack;
+    }
+    else if (decay > 0.0 && time < attack + decay)
+    {
+        // Exponential fall towards the sustain level, which sounds far more
+        // natural on a percussive click than a straight line.
+        envelope = sustain + (1.0 - sustain) * std::exp (-3.0 * (time - attack) / decay);
+    }
+    else if (time < beforeRelease || release <= 0.0)
+    {
+        envelope = sustain;
+    }
+    else
+    {
+        envelope = sustain * std::exp (-3.0 * (time - beforeRelease) / release);
+    }
+
+    // Guarantee a click-free start and end whatever the stage times are.
+    constexpr double fadeIn = 0.0005;
+    constexpr double fadeOut = 0.002;
+
+    if (time < fadeIn)
+        envelope *= time / fadeIn;
+
+    const auto remaining = lengthSeconds - time;
+
+    if (remaining < fadeOut)
+        envelope *= remaining / fadeOut;
+
+    return juce::jlimit (0.0, 1.0, envelope);
+}
 
 bool ClickSlot::loadStock (int stockIndex)
 {
@@ -177,7 +197,7 @@ RenderedClick::Ptr ClickSlot::render (const EditSettings& settings) const
         result->buffer.reverse (0, numFrames);
 
     applyFilters (result->buffer, sourceRate, settings.highPassHz, settings.lowPassHz);
-    applyEnvelope (result->buffer, sourceRate, settings.attackMs, settings.decayPercent);
+    applyEnvelope (result->buffer, sourceRate, settings);
 
     if (settings.normalise)
     {

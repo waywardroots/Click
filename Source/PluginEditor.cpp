@@ -15,7 +15,8 @@ ClickAudioProcessorEditor::ClickAudioProcessorEditor (ClickAudioProcessor& proce
     : juce::AudioProcessorEditor (&processorToUse),
       processor (processorToUse),
       stepGrid (processorToUse),
-      waveform (processorToUse)
+      waveform (processorToUse),
+      envelopeDisplay (processorToUse)
 {
     setLookAndFeel (&lookAndFeel);
 
@@ -75,12 +76,16 @@ ClickAudioProcessorEditor::ClickAudioProcessorEditor (ClickAudioProcessor& proce
     sampleInfoLabel.setColour (juce::Label::textColourId, textColour.withAlpha (0.7f));
     addAndMakeVisible (sampleInfoLabel);
 
-    for (auto* control : { &levelSlider, &tuneSlider, &attackSlider,
-                           &decaySlider, &highPassSlider, &lowPassSlider })
+    for (auto* control : { &levelSlider, &tuneSlider, &highPassSlider, &lowPassSlider })
         addAndMakeVisible (control);
 
     addAndMakeVisible (reverseButton);
     addAndMakeVisible (normaliseButton);
+
+    addAndMakeVisible (envelopeDisplay);
+
+    for (auto* control : { &attackSlider, &decaySlider, &sustainSlider, &releaseSlider })
+        addAndMakeVisible (control);
 
     statusLabel.setFont (juce::Font (juce::FontOptions (12.0f)));
     statusLabel.setJustificationType (juce::Justification::centredRight);
@@ -94,8 +99,8 @@ ClickAudioProcessorEditor::ClickAudioProcessorEditor (ClickAudioProcessor& proce
     startTimerHz (15);
 
     setResizable (true, true);
-    setResizeLimits (860, 560, 1600, 1000);
-    setSize (920, 610);
+    setResizeLimits (860, 690, 1600, 1100);
+    setSize (920, 752);
 }
 
 ClickAudioProcessorEditor::~ClickAudioProcessorEditor()
@@ -114,6 +119,8 @@ void ClickAudioProcessorEditor::setActiveSlot (int slot)
     tuneAttachment.reset();
     attackAttachment.reset();
     decayAttachment.reset();
+    sustainAttachment.reset();
+    releaseAttachment.reset();
     highPassAttachment.reset();
     lowPassAttachment.reset();
     reverseAttachment.reset();
@@ -132,12 +139,15 @@ void ClickAudioProcessorEditor::setActiveSlot (int slot)
     tuneAttachment     = std::make_unique<SliderAttachment> (state, params::slotParam (slot, params::tune), tuneSlider.slider);
     attackAttachment   = std::make_unique<SliderAttachment> (state, params::slotParam (slot, params::attack), attackSlider.slider);
     decayAttachment    = std::make_unique<SliderAttachment> (state, params::slotParam (slot, params::decay), decaySlider.slider);
+    sustainAttachment  = std::make_unique<SliderAttachment> (state, params::slotParam (slot, params::sustain), sustainSlider.slider);
+    releaseAttachment  = std::make_unique<SliderAttachment> (state, params::slotParam (slot, params::release), releaseSlider.slider);
     highPassAttachment = std::make_unique<SliderAttachment> (state, params::slotParam (slot, params::highPass), highPassSlider.slider);
     lowPassAttachment  = std::make_unique<SliderAttachment> (state, params::slotParam (slot, params::lowPass), lowPassSlider.slider);
     reverseAttachment  = std::make_unique<ButtonAttachment> (state, params::slotParam (slot, params::reverse), reverseButton);
     normaliseAttachment = std::make_unique<ButtonAttachment> (state, params::slotParam (slot, params::normalise), normaliseButton);
 
     waveform.setSlot (slot);
+    envelopeDisplay.setSlot (slot);
     updateSampleInfo();
 }
 
@@ -274,6 +284,15 @@ void ClickAudioProcessorEditor::paint (juce::Graphics& g)
     // panel behind the slot editor
     g.setColour (panelColour);
     g.fillRoundedRectangle (panelBounds.toFloat(), 6.0f);
+
+    // panel behind the ADSR strip
+    g.setColour (panelColour);
+    g.fillRoundedRectangle (adsrBounds.toFloat(), 6.0f);
+
+    g.setColour (accentColour);
+    g.setFont (juce::Font (juce::FontOptions (11.0f, juce::Font::bold)));
+    g.drawText ("AMPLITUDE ENVELOPE",
+                adsrBounds.reduced (12, 8), juce::Justification::topLeft, false);
 }
 
 void ClickAudioProcessorEditor::resized()
@@ -306,6 +325,25 @@ void ClickAudioProcessorEditor::resized()
     stepGrid.setBounds (area.removeFromTop (96));
     area.removeFromTop (12);
 
+    // --- ADSR strip along the bottom --------------------------------------
+    adsrBounds = area.removeFromBottom (130);
+    area.removeFromBottom (12);
+
+    {
+        auto adsr = adsrBounds.reduced (10);
+        adsr.removeFromTop (14);   // room for the section caption
+
+        envelopeDisplay.setBounds (adsr.removeFromLeft (juce::jmax (140, adsr.getWidth() / 3)));
+        adsr.removeFromLeft (14);
+
+        const auto stageWidth = adsr.getWidth() / 4;
+
+        attackSlider.setBounds (adsr.removeFromLeft (stageWidth).reduced (2, 0));
+        decaySlider.setBounds (adsr.removeFromLeft (stageWidth).reduced (2, 0));
+        sustainSlider.setBounds (adsr.removeFromLeft (stageWidth).reduced (2, 0));
+        releaseSlider.setBounds (adsr.reduced (2, 0));
+    }
+
     // --- slot editor ------------------------------------------------------
     panelBounds = area;
     auto panel = area.reduced (10);
@@ -332,10 +370,9 @@ void ClickAudioProcessorEditor::resized()
     panel.removeFromTop (4);
 
     auto knobs = panel.removeFromTop (juce::jmax (70, panel.getHeight() - 28));
-    const auto knobWidth = knobs.getWidth() / 6;
+    const auto knobWidth = knobs.getWidth() / 4;
 
-    for (auto* control : { &levelSlider, &tuneSlider, &attackSlider,
-                           &decaySlider, &highPassSlider, &lowPassSlider })
+    for (auto* control : { &levelSlider, &tuneSlider, &highPassSlider, &lowPassSlider })
         control->setBounds (knobs.removeFromLeft (knobWidth).reduced (2, 0));
 
     auto toggles = panel;

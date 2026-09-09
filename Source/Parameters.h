@@ -43,6 +43,8 @@ namespace params
     inline constexpr const char* tune      = "Tune";
     inline constexpr const char* attack    = "Attack";
     inline constexpr const char* decay     = "Decay";
+    inline constexpr const char* sustain   = "Sustain";
+    inline constexpr const char* release   = "Release";
     inline constexpr const char* highPass  = "HighPass";
     inline constexpr const char* lowPass   = "LowPass";
     inline constexpr const char* reverse   = "Reverse";
