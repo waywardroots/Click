@@ -33,6 +33,12 @@ private:
 
     ClickAudioProcessor& processor;
 
+    /** Cheap fingerprint of every step plus the step count, so the grid
+        redraws when the pattern is changed from anywhere: the randomiser,
+        host automation, or a preset being loaded. */
+    juce::uint32 patternSignature = 0;
+    juce::uint32 computeSignature() const;
+
     int highlightedStep = -1;
     int paintingStep = -1;
     StepState paintingState = StepState::off;

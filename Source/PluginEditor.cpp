@@ -47,6 +47,13 @@ ClickAudioProcessorEditor::ClickAudioProcessorEditor (ClickAudioProcessor& proce
     addAndMakeVisible (divisionBox);
     divisionAttachment = std::make_unique<ComboAttachment> (state, params::division, divisionBox);
 
+    patternLabel.setText ("PATTERN", juce::dontSendNotification);
+    patternLabel.setFont (juce::Font (juce::FontOptions (12.0f)));
+    addAndMakeVisible (patternLabel);
+
+    randomiseButton.onClick = [this] { processor.randomisePattern(); };
+    addAndMakeVisible (randomiseButton);
+
     addAndMakeVisible (stepGrid);
 
     // --- slot selection ---------------------------------------------------
@@ -103,8 +110,8 @@ ClickAudioProcessorEditor::ClickAudioProcessorEditor (ClickAudioProcessor& proce
     startTimerHz (15);
 
     setResizable (true, true);
-    setResizeLimits (860, 690, 1600, 1100);
-    setSize (920, 752);
+    setResizeLimits (860, 720, 1600, 1130);
+    setSize (920, 782);
 }
 
 ClickAudioProcessorEditor::~ClickAudioProcessorEditor()
@@ -332,6 +339,12 @@ void ClickAudioProcessorEditor::resized()
     outputSlider.setBounds (controls.reduced (4, 0));
 
     area.removeFromTop (10);
+
+    auto patternRow = area.removeFromTop (24);
+    patternLabel.setBounds (patternRow.removeFromLeft (90));
+    randomiseButton.setBounds (patternRow.removeFromRight (110).reduced (0, 1));
+    area.removeFromTop (6);
+
     stepGrid.setBounds (area.removeFromTop (96));
     area.removeFromTop (12);
 

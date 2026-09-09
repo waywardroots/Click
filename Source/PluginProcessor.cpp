@@ -222,6 +222,47 @@ void ClickAudioProcessor::auditionSlot (int slot)
     auditionRequest.store (slot);
 }
 
+void ClickAudioProcessor::randomisePattern()
+{
+    const auto count = juce::jlimit (1, maxSteps, (int) std::round (stepCountParam->load()));
+
+    for (int step = 0; step < maxSteps; ++step)
+    {
+        auto state = StepState::off;
+
+        if (step < count)
+        {
+            const auto roll = random.nextFloat();
+
+            if (step == 0)
+            {
+                // Always land the downbeat, so the result is still usable as a
+                // click rather than an arbitrary scatter of hits.
+                state = StepState::accent;
+            }
+            else if (step % 4 == 0)
+            {
+                // Strong positions sound more often, and are the only places
+                // that pick up further accents.
+                state = roll < 0.25f ? StepState::accent
+                      : roll < 0.90f ? StepState::regular
+                                     : StepState::off;
+            }
+            else
+            {
+                state = roll < 0.55f ? StepState::regular : StepState::off;
+            }
+        }
+
+        if (auto* parameter = apvts.getParameter (params::stepParam (step)))
+        {
+            parameter->beginChangeGesture();
+            parameter->setValueNotifyingHost (parameter->convertTo0to1 ((float) (int) state));
+            parameter->endChangeGesture();
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // slots and rendering (message thread)
 // ---------------------------------------------------------------------------

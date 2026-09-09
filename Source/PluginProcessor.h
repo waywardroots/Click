@@ -77,6 +77,9 @@ public:
     /** Plays a slot once, so the user can hear their edits while stopped. */
     void auditionSlot (int slot);
 
+    /** Fills the active steps with a fresh random pattern. */
+    void randomisePattern();
+
     /** Index of the step most recently reached by the sequencer, or -1. */
     int getDisplayStep() const noexcept { return displayStep.load(); }
 
@@ -105,6 +108,7 @@ private:
     void fireStep (int patternIndex);
 
     juce::AudioFormatManager formatManager;
+    juce::Random random;
 
     std::array<ClickSlot, (size_t) numSlots> slots;
     std::array<EditSettings, (size_t) numSlots> cachedSettings;

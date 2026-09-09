@@ -18,15 +18,39 @@ StepGrid::StepGrid (ClickAudioProcessor& processorToUse)
     startTimerHz (30);
 }
 
+juce::uint32 StepGrid::computeSignature() const
+{
+    auto signature = (juce::uint32) juce::jlimit (1, maxSteps,
+        (int) std::round (processor.apvts.getRawParameterValue (params::stepCount)->load()));
+
+    for (int step = 0; step < maxSteps; ++step)
+        signature = signature * 3u + (juce::uint32) (int) getState (step);
+
+    return signature;
+}
+
 void StepGrid::timerCallback()
 {
+    auto needsRepaint = false;
+
     const auto step = processor.isRunning() ? processor.getDisplayStep() : -1;
 
     if (step != highlightedStep)
     {
         highlightedStep = step;
-        repaint();
+        needsRepaint = true;
     }
+
+    const auto signature = computeSignature();
+
+    if (signature != patternSignature)
+    {
+        patternSignature = signature;
+        needsRepaint = true;
+    }
+
+    if (needsRepaint)
+        repaint();
 }
 
 juce::Rectangle<float> StepGrid::boundsForStep (int step) const

@@ -80,6 +80,8 @@ private:
     std::unique_ptr<SliderAttachment> tempoAttachment, stepsAttachment, swingAttachment, outputAttachment;
     std::unique_ptr<ComboAttachment> divisionAttachment;
 
+    juce::Label patternLabel;
+    juce::TextButton randomiseButton { "Randomise" };
     StepGrid stepGrid;
 
     // --- slot editor ------------------------------------------------------

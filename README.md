@@ -10,6 +10,9 @@ sample editor so you can shape the click — or load your own WAV and edit that 
 **Step sequencer**
 - Up to 32 steps, each one *off*, *regular*, or *accent*
 - Click a step to cycle it, drag across steps to paint, right-click to clear
+- **Randomise** fills the active steps with a new pattern: the downbeat always
+  lands, on-beat positions sound more often, and accents are kept to strong
+  positions, so the result stays usable as a click
 - Divisions: 1/4, 1/8, 1/8T, 1/16, 1/16T, 1/32
 - Swing (delays odd-numbered steps by up to 75% of a step)
 - Locks to the host transport and tempo, or free-runs at its own BPM
