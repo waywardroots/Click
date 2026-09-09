@@ -1,0 +1,23 @@
+# build output
+build/
+cmake-build-*/
+out/
+Builds/
+JuceLibraryCode/
+
+# fetched dependencies
+_deps/
+JUCE/
+
+# editors / IDEs
+.vscode/
+.idea/
+*.swp
+
+# os noise
+.DS_Store
+Thumbs.db
+
+# python
+__pycache__/
+*.pyc
