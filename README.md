@@ -246,11 +246,16 @@ that the verifier accepts it:
 Finally paste `key.txt` into the plugin's unlock screen, and reopen the plugin
 to confirm the activation persisted.
 
-`tools/website/generate-licence-keys.ts` is the signer the website uses. Its
-algorithm is deliberately not ordinary RSA signing: the XML payload is signed
-whole, unhashed, read little-endian, and the key file is comment lines then
-`#` then hex. A correct key contains no readable XML and around 512 hex
-characters.
+`tools/website/` holds the signer the website runs — the same algorithm in
+TypeScript, plain Node and PHP — and `tools/website/README.md` is the spec it
+must follow. The algorithm is deliberately not ordinary RSA signing: the XML
+payload is signed whole, unhashed, read little-endian, and the key file is
+comment lines then `#` then hex.
+
+`python3 tools/website/verify-signer.py` checks the signer without needing a
+build: it makes a throwaway RSA pair, signs a key with the Node signer, undoes
+the transform the way the plugin does, and asserts the payload that falls out is
+the expected flat `<key .../>` element.
 
 The public key only verifies, so it is committed. **The private key signs: it
 belongs on the server and must never reach this repository, the plugin binary
@@ -275,7 +280,7 @@ resources/clicks/*.wav      the ten stock clicks (embedded via BinaryData)
 tools/generate_clicks.py    regenerates the stock clicks
 tools/make_eula_txt.py      regenerates packaging/eula.txt from the PDF
 tools/keygen/keygen.cpp     makes the RSA pair, signs and verifies keys
-tools/website/              the signer the website runs (keep the private key there)
+tools/website/              the signer the website runs, its spec, and a self-test
 modules/fuzzyaudio_licensing/
                             reusable unlock module: LicenseManager + UnlockGate
 Source/
