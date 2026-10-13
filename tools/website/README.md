@@ -24,6 +24,23 @@ all checks passed
 
 (It skips any signer whose runtime is missing — the PHP one needs `php-gmp`.)
 
+`inspect-key.py` goes the other way, for when a buyer reports a key that will
+not unlock. Give it the product's public key and the key file and it prints the
+payload the plug-in would recover, then says which of JUCE's checks the key
+fails:
+
+```
+$ python3 tools/website/inspect-key.py "5,<modulus>" key.txt
+payload : <key user="Jane Doe" email="buyer@example.com" mach="click-license-v1" app="Click" date="1a1373fddd5"/>
+  PASS  user and email are non-empty
+  PASS  app is "Click"
+  PASS  mach carries "click-license-v1"
+```
+
+It distinguishes the three ways a key goes wrong: wrong product name, wrong
+activation token, and signed with a pair whose public half is not the one in
+the plug-in — the last shows up as a payload that is not valid UTF-8 at all.
+
 ## DO NOT (these are the mistakes that make keys fail)
 1. **Do NOT hash** the payload (no SHA-1/SHA-256). JUCE signs the *entire XML*.
 2. **Do NOT** emit standard RSA / PEM signatures. The key is JUCE's `"<d_hex>,<n_hex>"`.
