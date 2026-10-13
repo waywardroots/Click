@@ -148,6 +148,8 @@ python3 tools/generate_clicks.py
 ```
 CMakeLists.txt              build definition
 logo.png                    icon drawn in the UI header (embedded via BinaryData)
+End User License Agreement - FuzzyAudio - Click.pdf
+                            the EULA shown by the installers and linked below
 resources/clicks/*.wav      the ten stock clicks (embedded via BinaryData)
 tools/generate_clicks.py    regenerates the stock clicks
 Source/
@@ -174,7 +176,16 @@ the audio thread has read the pointer but not yet taken its reference.
 
 ## Licence
 
+Click is distributed to end users under the **[Fuzzy Audio End User License
+Agreement](End%20User%20License%20Agreement%20-%20FuzzyAudio%20-%20Click.pdf)**
+(`End User License Agreement - FuzzyAudio - Click.pdf` in this repository). The
+Application is licensed, not sold; the agreement is accepted by downloading,
+installing or using it, and the Windows and macOS installers present it for
+acceptance before any files are written.
+
 The plugin source in this repository and the generated click samples are original
-work. JUCE itself is fetched at build time and carries [its own licence
-terms](https://juce.com/legal/juce-8-licence/) — review them before distributing
-a binary.
+work, Copyright © 2026 Fuzzy Audio LLC. JUCE itself is fetched at build time and
+carries [its own licence terms](https://juce.com/legal/juce-8-licence/) — review
+them before distributing a binary. The VST3 portions are used under the MIT
+licence from Steinberg Media Technologies GmbH, as recorded in section 5 of the
+EULA.
