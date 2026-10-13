@@ -7,6 +7,13 @@
 ; can be overridden, which is how CI passes the version it built:
 ;
 ;   iscc /DAppVersion=1.0.1 /DArtefacts=C:\path\to\Release packaging\windows\Click.iss
+;
+; To sign the installer, name a sign tool and define SignTool (docs/SIGNING.md).
+; Sign the plugin binaries themselves before running this - Inno signs the
+; installer it produces, not the files inside it:
+;
+;   iscc /Sfuzzy="signtool.exe sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $f" ^
+;        /DSignTool=fuzzy packaging\windows\Click.iss
 
 #ifndef AppVersion
   ; Keep in step with project(Click VERSION ...) in CMakeLists.txt.
@@ -45,6 +52,10 @@ PrivilegesRequired=admin
 ; Both install locations are chosen on their own wizard pages instead.
 DisableDirPage=yes
 DisableProgramGroupPage=yes
+
+#ifdef SignTool
+SignTool={#SignTool}
+#endif
 
 [Types]
 Name: "full"; Description: "VST3 plugin and standalone application"

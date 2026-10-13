@@ -143,66 +143,18 @@ The Windows script takes `/DAppVersion=` and `/DArtefacts=` to override the
 version and the artefact folder; the macOS script takes the artefact and output
 folders as arguments. Both read the licence text from `packaging/eula.txt`.
 
-Neither installer is signed, so Windows shows a SmartScreen warning and macOS
-refuses the package until it is opened from the context menu. Signing them
-needs certificates this repository does not carry:
+Neither installer is signed yet, so Windows shows a SmartScreen warning and
+macOS refuses the package until it is opened from the context menu.
+[`docs/SIGNING.md`](docs/SIGNING.md) covers what certificates to get and the
+exact commands; the scripts already take the identities:
 
 ```bash
-# Windows, before distributing
-signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 \
-    /f cert.pfx /p PASSWORD build\installer\Click-1.0.0-Windows.exe
+export CLICK_CODESIGN_IDENTITY="Developer ID Application: ..."
+export CLICK_INSTALLER_IDENTITY="Developer ID Installer: ..."
+packaging/macos/build-installer.sh      # signs, then notarise and staple
 
-# macOS: sign the bundles before packaging, then the package itself
-codesign --force --timestamp --options runtime \
-    --sign "Developer ID Application: ..." build/Click_artefacts/Release/VST3/Click.vst3
-productsign --sign "Developer ID Installer: ..." \
-    build/installer/Click-1.0.0-macOS.pkg Click-signed.pkg
-xcrun notarytool submit Click-signed.pkg --keychain-profile PROFILE --wait
-xcrun stapler staple Click-signed.pkg
-```
-
-
-## Building locally
-
-Requires CMake 3.22+ and a C++17 compiler. JUCE 8.0.4 is fetched automatically.
-
-```bash
-git clone https://github.com/waywardroots/Click.git
-cd Click
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
-```
-
-Artefacts land in `build/Click_artefacts/Release/`.
-
-Platform specifics:
-
-- **Windows** — Visual Studio 2022 (Desktop C++ workload). The commands above
-  work from any shell with CMake on `PATH`.
-- **macOS** — Xcode command line tools. Builds universal by default; override
-  with `-DCMAKE_OSX_ARCHITECTURES=arm64` for a single-architecture build.
-- **Linux** — install the JUCE development packages first:
-
-  ```bash
-  sudo apt install libasound2-dev libfreetype-dev libfontconfig1-dev \
-    libx11-dev libxcomposite-dev libxcursor-dev libxext-dev \
-    libxinerama-dev libxrandr-dev libxrender-dev
-  ```
-
-To build against a JUCE checkout you already have (also useful offline):
-
-```bash
-cmake -B build -DCLICK_JUCE_PATH=/path/to/JUCE
-cmake --build build
-```
-
-### Regenerating the stock clicks
-
-The WAVs are committed, so this is only needed if you want to change them.
-Requires `numpy`.
-
-```bash
-python3 tools/generate_clicks.py
+iscc /Sfuzzy="signtool.exe sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $f" \
+     /DSignTool=fuzzy packaging\windows\Click.iss
 ```
 
 ## License keys
@@ -286,6 +238,7 @@ tools/generate_clicks.py    regenerates the stock clicks
 tools/make_eula_txt.py      regenerates packaging/eula.txt from the PDF
 tools/keygen/keygen.cpp     makes the RSA pair, signs and verifies keys
 tools/website/              the signer the website runs, its spec, and a self-test
+docs/SIGNING.md             certificates and commands for signing a release
 modules/fuzzyaudio_licensing/
                             reusable unlock module: LicenseManager + UnlockGate
 Source/
