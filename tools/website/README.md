@@ -9,6 +9,21 @@ Ready-to-use reference implementations live next to this file:
 - `generate-licence-keys.ts` (TypeScript) — same algorithm.
 - `sign_license.php` (PHP + gmp) — same algorithm.
 
+`verify-signer.py` drives each of them through a throwaway key pair and applies
+the same tests `applyKeyFile` does, so a signer can be proved without building
+the plug-in:
+
+```
+$ python3 tools/website/verify-signer.py
+generate-licence-keys.mjs  [short details]  payload=86B   hex=256
+generate-licence-keys.mjs  [long details]   payload=158B  hex=512
+generate-licence-keys.ts   [short details]  payload=86B   hex=256
+generate-licence-keys.ts   [long details]   payload=158B  hex=511
+all checks passed
+```
+
+(It skips any signer whose runtime is missing — the PHP one needs `php-gmp`.)
+
 ## DO NOT (these are the mistakes that make keys fail)
 1. **Do NOT hash** the payload (no SHA-1/SHA-256). JUCE signs the *entire XML*.
 2. **Do NOT** emit standard RSA / PEM signatures. The key is JUCE's `"<d_hex>,<n_hex>"`.
