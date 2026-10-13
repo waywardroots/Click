@@ -149,9 +149,11 @@ python3 tools/generate_clicks.py
 CMakeLists.txt              build definition
 logo.png                    icon drawn in the UI header (embedded via BinaryData)
 End User License Agreement - FuzzyAudio - Click.pdf
-                            the EULA shown by the installers and linked below
+                            the EULA, master copy
+packaging/eula.txt          the same text, for the installers to display
 resources/clicks/*.wav      the ten stock clicks (embedded via BinaryData)
 tools/generate_clicks.py    regenerates the stock clicks
+tools/make_eula_txt.py      regenerates packaging/eula.txt from the PDF
 Source/
   Parameters.*              parameter IDs and the APVTS layout
   ClickLibrary.*            decoding of stock clicks and user files
@@ -189,3 +191,22 @@ carries [its own licence terms](https://juce.com/legal/juce-8-licence/) — revi
 them before distributing a binary. The VST3 portions are used under the MIT
 licence from Steinberg Media Technologies GmbH, as recorded in section 5 of the
 EULA.
+
+### The installer copy of the EULA
+
+Neither installer can display a PDF: Inno Setup's `LicenseFile` takes `.txt` or
+`.rtf`, and the macOS `<license>` element takes `.txt`, `.rtf` or `.html`. So
+`packaging/eula.txt` holds the same agreement as plain text — UTF-8 with a BOM
+(Inno Setup only reads a `.txt` licence as UTF-8 when one is present) and CRLF
+line endings, wrapped at 76 columns.
+
+The PDF is the master copy. After changing it, regenerate the text and commit
+both:
+
+```bash
+python3 tools/make_eula_txt.py      # needs pdftotext (poppler-utils)
+```
+
+The script reflows the extracted text and then checks its output word for word
+against the PDF, so a silent drop or reordering fails the run rather than
+reaching an installer.
