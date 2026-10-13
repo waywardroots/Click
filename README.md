@@ -220,10 +220,15 @@ file, so it survives restarts.
 | --- | --- |
 | `productId` / `appName` | `Click` |
 | `activationToken` | `click-license-v1` |
-| `publicKey` | **placeholder — not yet generated** |
+| `publicKey` | embedded, exponent 5 |
 | Signing key | this product's own private key, never reused |
 
-### Generating the pair
+### Rotating the pair
+
+Click already has a pair; this is how to replace it. The public half lives in
+`makeLicenseConfig()`, the private half on the website only. Changing one
+without the other stops every key working, and keys already issued from the old
+pair stop working whatever you do, so re-issue them.
 
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_KEYGEN=ON

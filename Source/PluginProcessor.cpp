@@ -11,10 +11,18 @@ namespace
         return juce::Identifier (params::slotPrefix (slot) + "UserFile");
     }
 
-    /** This product's RSA public half, printed by `keygen makepair`. It only
-        verifies keys, so it is safe to commit; the private half signs them and
-        must never leave the website. */
-    constexpr const char* licensePublicKey = "5,<modulus hex from makepair>";
+    /** Click's RSA public half, from `keygen makepair`. It can only verify
+        keys, never create them, so it is safe to commit and ship; the private
+        half signs them and lives on the website alone.
+
+        The exponent is 5, which is what JUCE picked for this pair - not a
+        constant. Replacing this key means replacing the website's signing key
+        at the same moment, and re-issuing every key already sold. */
+    constexpr const char* licensePublicKey =
+        "5,8598c288e14265057f8aadf9fbdf54184fa5ae012829eddbe4825293ace2cdde"
+        "1044ee631478b021ad22b028d9a75dd1dfe145e48fea53ad9d67da19394d4c97"
+        "ddfed409ccb63ee14a9a0a43c117fb5af10f67d3adc33b01a2d009cffe38fe30"
+        "e2e67b41c7e74ff0cab6e07079b1eca596d7bb22b638c194d4bfe7eb8437f083";
 
     fuzzyaudio::LicenseManager::Config makeLicenseConfig()
     {
@@ -27,14 +35,12 @@ namespace
         c.websiteURL      = juce::URL ("https://fuzzyaudio.example");
         c.activationToken = "click-license-v1";   // unique to Click
 
-        // Until this is a real key, every key a customer pastes is rejected as
-        // "Credentials are invalid" - and not because the key is wrong.
-        // BigInteger::parseString ignores non-hex characters, so the
-        // placeholder below parses to the digits buried in its own words
-        // (0xdefaea) and RSAKey::isValid() says yes. JUCE then transforms the
-        // key with that nonsense modulus, gets bytes that are not UTF-8, and
-        // recovers an empty XML element whose user and email are empty.
-        jassert (! c.publicKey.containsChar ('<'));
+        // A key that is not two hex halves silently half-works: BigInteger
+        // ignores non-hex characters, so a placeholder parses to whatever
+        // digits are buried in it, the transform runs on a nonsense modulus,
+        // and every customer's key comes back as "Credentials are invalid".
+        jassert (c.publicKey.fromFirstOccurrenceOf (",", false, false)
+                            .containsOnly ("0123456789abcdefABCDEF"));
 
         return c;
     }
