@@ -75,6 +75,8 @@ Every push builds Windows, macOS and Linux on GitHub Actions
 (`.github/workflows/build.yml`). Installable plugins are attached to each run as
 downloadable artefacts — open the **Actions** tab, pick a run, and grab
 `Click-Windows`, `Click-macOS` or `Click-Linux` from the Artifacts section.
+The Windows and macOS runs also produce installers, as
+`Click-Windows-Installer` and `Click-macOS-Installer`.
 
 | Platform | Formats | Notes |
 | --- | --- | --- |
@@ -91,6 +93,30 @@ xattr -dr com.apple.quarantine Click.vst3 Click.component
 
 ### Installing
 
+Windows and macOS have installers, built by the same CI run and attached as
+`Click-Windows-Installer` and `Click-macOS-Installer`. Both present the EULA
+first and stop if it is declined, and both let you choose what to install and
+where it goes.
+
+| Platform | Installer | Choices it offers |
+| --- | --- | --- |
+| Windows | `Click-1.0.0-Windows.exe` | VST3 and/or standalone, and the folder for each |
+| macOS | `Click-1.0.0-macOS.pkg` | VST3, AU and/or standalone, installed for all users or just you |
+
+The Windows installer defaults the plugin to `C:\Program Files\Common
+Files\VST3\` and the application to `C:\Program Files\Fuzzy Audio\Click\`,
+and the folder for each is editable on its own page of the wizard. It needs
+an administrator, because the default plugin folder does. Uninstall from
+*Apps & features*.
+
+The macOS package offers **Install for all users** (`/Library/Audio/Plug-Ins`,
+`/Applications`) or **Install for me only**, which writes the same layout under
+your home folder. Those are the folders hosts scan, so the destination is a
+choice between the two rather than a free-form path: a plugin anywhere else is
+never found.
+
+Installing by hand works too — drop the bundles in:
+
 | Platform | VST3 | AU |
 | --- | --- | --- |
 | Windows | `C:\Program Files\Common Files\VST3\` | — |
@@ -99,6 +125,42 @@ xattr -dr com.apple.quarantine Click.vst3 Click.component
 
 Click is an **instrument**, so it loads on a MIDI track. It generates its own
 click from the sequencer and ignores any MIDI sent to it.
+
+### Building the installers
+
+Build Click first; both scripts package what CMake left in
+`build/Click_artefacts/Release` and write to `build/installer`.
+
+```bash
+# Windows, with Inno Setup 6 installed
+iscc packaging\windows\Click.iss
+
+# macOS
+packaging/macos/build-installer.sh
+```
+
+The Windows script takes `/DAppVersion=` and `/DArtefacts=` to override the
+version and the artefact folder; the macOS script takes the artefact and output
+folders as arguments. Both read the licence text from `packaging/eula.txt`.
+
+Neither installer is signed, so Windows shows a SmartScreen warning and macOS
+refuses the package until it is opened from the context menu. Signing them
+needs certificates this repository does not carry:
+
+```bash
+# Windows, before distributing
+signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 \
+    /f cert.pfx /p PASSWORD build\installer\Click-1.0.0-Windows.exe
+
+# macOS: sign the bundles before packaging, then the package itself
+codesign --force --timestamp --options runtime \
+    --sign "Developer ID Application: ..." build/Click_artefacts/Release/VST3/Click.vst3
+productsign --sign "Developer ID Installer: ..." \
+    build/installer/Click-1.0.0-macOS.pkg Click-signed.pkg
+xcrun notarytool submit Click-signed.pkg --keychain-profile PROFILE --wait
+xcrun stapler staple Click-signed.pkg
+```
+
 
 ## Building locally
 
@@ -151,6 +213,12 @@ logo.png                    icon drawn in the UI header (embedded via BinaryData
 End User License Agreement - FuzzyAudio - Click.pdf
                             the EULA, master copy
 packaging/eula.txt          the same text, for the installers to display
+packaging/windows/Click.iss the Inno Setup installer
+packaging/windows/Click.ico installer and application icon, from logo.png
+packaging/macos/distribution.xml
+                            the macOS installer's panes and choices
+packaging/macos/build-installer.sh
+                            builds Click-<version>-macOS.pkg
 resources/clicks/*.wav      the ten stock clicks (embedded via BinaryData)
 tools/generate_clicks.py    regenerates the stock clicks
 tools/make_eula_txt.py      regenerates packaging/eula.txt from the PDF

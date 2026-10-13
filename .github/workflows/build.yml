@@ -65,6 +65,29 @@ jobs:
             build/Click_artefacts/Release/AU/**
             build/Click_artefacts/Release/Standalone/**
 
+      - name: Build the Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y
+          $version = (Select-String -Path CMakeLists.txt `
+                        -Pattern 'project\(Click VERSION ([0-9.]+)').Matches[0].Groups[1].Value
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" `
+              "/DAppVersion=$version" packaging\windows\Click.iss
+
+      - name: Build the macOS installer
+        if: runner.os == 'macOS'
+        run: packaging/macos/build-installer.sh
+
+      # Unsigned: both platforms will warn before letting the user run these.
+      - name: Upload installers
+        if: runner.os != 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Click-${{ matrix.name }}-Installer
+          if-no-files-found: error
+          path: build/installer/*
+
       # pluginval exercises the plugin the way a host does: bus layouts, state
       # save/restore, parameter sweeps, editor open/close, and audio processing
       # on background threads. It catches most "won't load in my DAW" faults.

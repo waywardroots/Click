@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>Click</title>
+    <organization>com.fuzzyaudio</organization>
+
+    <!-- Shown with Agree / Disagree buttons; Disagree ends the install. -->
+    <license file="eula.txt" mime-type="text/plain"/>
+
+    <!-- customize="always" opens on the component list, so the formats can be
+         turned off individually. -->
+    <options customize="always" require-scripts="false" hostArchitectures="arm64,x86_64"/>
+
+    <!-- Destination Select: "for all users" writes to /Library and
+         /Applications, "for me only" writes the same tree under the home
+         folder. Both are places hosts scan. enable_anywhere is off because an
+         arbitrary folder is not: a plugin outside these paths is never found. -->
+    <domains enable_anywhere="false" enable_currentUserHome="true" enable_localSystem="true"/>
+
+    <volume-check>
+        <allowed-os-versions>
+            <os-version min="10.13"/>
+        </allowed-os-versions>
+    </volume-check>
+
+    <choices-outline>
+        <line choice="vst3"/>
+        <line choice="au"/>
+        <line choice="app"/>
+    </choices-outline>
+
+    <choice id="vst3" title="VST3 Plug-in"
+            description="Click.vst3, for hosts that load VST3 plug-ins. Installed in Library/Audio/Plug-Ins/VST3.">
+        <pkg-ref id="com.fuzzyaudio.click.vst3"/>
+    </choice>
+
+    <choice id="au" title="Audio Unit"
+            description="Click.component, for Logic, GarageBand and other AU hosts. Installed in Library/Audio/Plug-Ins/Components.">
+        <pkg-ref id="com.fuzzyaudio.click.au"/>
+    </choice>
+
+    <choice id="app" title="Standalone Application"
+            description="Click.app, which runs on its own without a host. Installed in Applications.">
+        <pkg-ref id="com.fuzzyaudio.click.app"/>
+    </choice>
+
+    <pkg-ref id="com.fuzzyaudio.click.vst3">vst3.pkg</pkg-ref>
+    <pkg-ref id="com.fuzzyaudio.click.au">au.pkg</pkg-ref>
+    <pkg-ref id="com.fuzzyaudio.click.app">app.pkg</pkg-ref>
+</installer-gui-script>
