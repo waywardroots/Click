@@ -186,5 +186,18 @@ for signer, sign in SIGNERS:
             print(f"  {'PASS' if ok else 'FAIL'}  {name_}")
             failures += not ok
 
+# A key with no buyer name or email is rejected by the plug-in as "Credentials
+# are invalid", but its comment lines look normal, so the signer must refuse to
+# produce one in the first place.
+print("\nrefusing to sign empty credentials")
+
+for signer, sign in SIGNERS:
+    try:
+        sign("", "")
+        print(f"  FAIL  {signer} signed a key with no user or email")
+        failures += 1
+    except subprocess.CalledProcessError:
+        print(f"  PASS  {signer}")
+
 print(f"\n{'all checks passed' if failures == 0 else str(failures) + ' CHECKS FAILED'}")
 sys.exit(1 if failures else 0)

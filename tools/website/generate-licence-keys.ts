@@ -22,6 +22,10 @@ export function generateKeyFile(info: LicenceInfo, privateKey: string): string {
   const d = BigInt("0x" + privateKey.slice(0, comma).trim());
   const n = BigInt("0x" + privateKey.slice(comma + 1).trim());
   const name = (info.name && info.name.length > 0) ? info.name : info.email;
+  // The plug-in rejects a key whose user or email is empty ("Credentials are
+  // invalid"), and the comment lines still look plausible, so refuse to sign
+  // one rather than hand the buyer a key that cannot work.
+  if (!name || !info.email) throw new Error("user/name and email must be non-empty.");
   const xml =
     `<key user="${xmlAttr(name)}" email="${xmlAttr(info.email)}" mach="${xmlAttr(info.machine)}" app="${xmlAttr(info.app)}" date="${Date.now().toString(16)}"/>`;
   const hex = applyToValue(bytesToBigIntLE(new TextEncoder().encode(xml)), d, n).toString(16);
