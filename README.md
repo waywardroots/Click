@@ -205,6 +205,58 @@ Requires `numpy`.
 python3 tools/generate_clicks.py
 ```
 
+## License keys
+
+Click is unlocked by a key file, verified offline. The website signs a key with
+the private half of Click's RSA pair; the plugin verifies it against the public
+half embedded in `Source/PluginProcessor.cpp`. Nothing is contacted at runtime,
+and a key works on any machine — the website is what enforces one key per sale.
+
+Until a key is applied the editor is covered by the unlock screen, which takes
+a pasted key and nothing else. Activation is stored in the plugin's settings
+file, so it survives restarts.
+
+| What changes per product | Click's value |
+| --- | --- |
+| `productId` / `appName` | `Click` |
+| `activationToken` | `click-license-v1` |
+| `publicKey` | **placeholder — not yet generated** |
+| Signing key | this product's own private key, never reused |
+
+### Generating the pair
+
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_KEYGEN=ON
+cmake --build build --target Keygen
+./build/Keygen_artefacts/Release/keygen makepair 1024
+```
+
+Put the `public:` half in `makeLicenseConfig()` in `Source/PluginProcessor.cpp`
+and give the `private:` half to the website. Then sign a test key and check
+that the verifier accepts it:
+
+```bash
+./build/Keygen_artefacts/Release/keygen sign \
+    "Click" test@example.com "click-license-v1" "<PRIVATE>" "Test" > key.txt
+./build/Keygen_artefacts/Release/keygen verify \
+    "Click" "<PUBLIC>" "click-license-v1" key.txt
+#   expect: applyKeyFile: ok / isUnlocked: YES
+```
+
+Finally paste `key.txt` into the plugin's unlock screen, and reopen the plugin
+to confirm the activation persisted.
+
+`tools/website/generate-licence-keys.ts` is the signer the website uses. Its
+algorithm is deliberately not ordinary RSA signing: the XML payload is signed
+whole, unhashed, read little-endian, and the key file is comment lines then
+`#` then hex. A correct key contains no readable XML and around 512 hex
+characters.
+
+The public key only verifies, so it is committed. **The private key signs: it
+belongs on the server and must never reach this repository, the plugin binary
+or a chat window.** This stops casual sharing; like any key scheme it does not
+stop a determined cracker.
+
 ## Layout
 
 ```
@@ -222,6 +274,10 @@ packaging/macos/build-installer.sh
 resources/clicks/*.wav      the ten stock clicks (embedded via BinaryData)
 tools/generate_clicks.py    regenerates the stock clicks
 tools/make_eula_txt.py      regenerates packaging/eula.txt from the PDF
+tools/keygen/keygen.cpp     makes the RSA pair, signs and verifies keys
+tools/website/              the signer the website runs (keep the private key there)
+modules/fuzzyaudio_licensing/
+                            reusable unlock module: LicenseManager + UnlockGate
 Source/
   Parameters.*              parameter IDs and the APVTS layout
   ClickLibrary.*            decoding of stock clicks and user files

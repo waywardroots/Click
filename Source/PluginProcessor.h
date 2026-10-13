@@ -2,6 +2,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_audio_formats/juce_audio_formats.h>
+#include <fuzzyaudio_licensing/fuzzyaudio_licensing.h>
 
 #include "Parameters.h"
 #include "ClickSlot.h"
@@ -62,6 +63,11 @@ public:
 
     // --- editor support (message thread) ----------------------------------
     juce::AudioProcessorValueTreeState apvts;
+
+    /** Offline key unlocking. The editor shows its gate until a key is applied.
+        Activation is loaded in the constructor and saved by applyKey, so no
+        other code needs to persist it. */
+    fuzzyaudio::LicenseManager license;
 
     const ClickSlot& getSlot (int slot) const { return slots[(size_t) slot]; }
 

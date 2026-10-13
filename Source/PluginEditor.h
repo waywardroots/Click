@@ -63,6 +63,9 @@ private:
     void showLoadDialog();
     void showSaveDialog();
 
+    /** Covers the editor with the unlock screen until a key is applied. */
+    void showUnlockGateIfLocked();
+
     ClickAudioProcessor& processor;
     juce::LookAndFeel_V4 lookAndFeel { juce::LookAndFeel_V4::getMidnightColourScheme() };
 
@@ -118,6 +121,8 @@ private:
 
     std::unique_ptr<juce::FileChooser> chooser;
     juce::Label statusLabel;
+
+    std::unique_ptr<fuzzyaudio::UnlockGate> unlockGate;
 
     const juce::Image logo;
 

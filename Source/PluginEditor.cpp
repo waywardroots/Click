@@ -117,6 +117,8 @@ ClickAudioProcessorEditor::ClickAudioProcessorEditor (ClickAudioProcessor& proce
     setResizable (true, true);
     setResizeLimits (860, 751, 1600, 1161);
     setSize (920, 813);
+
+    showUnlockGateIfLocked();
 }
 
 ClickAudioProcessorEditor::~ClickAudioProcessorEditor()
@@ -435,6 +437,20 @@ void ClickAudioProcessorEditor::resized()
     auto toggles = panel;
     reverseButton.setBounds (toggles.removeFromLeft (110));
     normaliseButton.setBounds (toggles.removeFromLeft (110));
+
+    if (unlockGate != nullptr)
+        unlockGate->setBounds (getLocalBounds());
+}
+
+void ClickAudioProcessorEditor::showUnlockGateIfLocked()
+{
+    if (processor.license.isActivated())
+        return;
+
+    unlockGate = std::make_unique<fuzzyaudio::UnlockGate> (processor.license);
+    unlockGate->onUnlockSucceeded = [this] { unlockGate.reset(); };
+    addAndMakeVisible (*unlockGate);
+    unlockGate->setBounds (getLocalBounds());
 }
 
 } // namespace click

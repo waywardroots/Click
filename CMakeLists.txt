@@ -36,6 +36,15 @@ else()
 endif()
 
 # ---------------------------------------------------------------------------
+# licensing
+#
+# Offline, paste-only key unlocking: the website signs a key with the private
+# half of this product's RSA pair, the plugin verifies it with the public half
+# embedded in PluginProcessor.cpp. Nothing is contacted at runtime.
+# ---------------------------------------------------------------------------
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/modules/fuzzyaudio_licensing")
+
+# ---------------------------------------------------------------------------
 # plugin target
 # ---------------------------------------------------------------------------
 # Audio Units are macOS only; VST3 and the standalone app build everywhere.
@@ -98,7 +107,31 @@ target_compile_definitions(Click PUBLIC
 target_link_libraries(Click PRIVATE
     ClickAssets
     juce::juce_audio_utils
+    fuzzyaudio_licensing
     PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags)
+
+# ---------------------------------------------------------------------------
+# key generator
+#
+# Off by default: it is a seller's tool, not part of the plugin. Build it to
+# make this product's key pair, and to sign and verify test keys.
+#
+#   cmake -B build -DBUILD_KEYGEN=ON && cmake --build build --target Keygen
+# ---------------------------------------------------------------------------
+option(BUILD_KEYGEN "Build the license key generator CLI" OFF)
+
+if(BUILD_KEYGEN)
+    juce_add_console_app(Keygen PRODUCT_NAME "keygen")
+    target_sources(Keygen PRIVATE tools/keygen/keygen.cpp)
+    target_compile_definitions(Keygen PRIVATE
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CURL=0
+        JUCE_STANDALONE_APPLICATION=1)
+    target_link_libraries(Keygen PRIVATE
+        juce::juce_product_unlocking
+        juce::juce_data_structures   # OnlineUnlockStatus is compiled out without it
+        juce::juce_recommended_config_flags)
+endif()

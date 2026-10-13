@@ -10,12 +10,36 @@ namespace
     {
         return juce::Identifier (params::slotPrefix (slot) + "UserFile");
     }
+
+    /** This product's RSA public half, printed by `keygen makepair`. It only
+        verifies keys, so it is safe to commit; the private half signs them and
+        must never leave the website. */
+    constexpr const char* licensePublicKey = "5,<modulus hex from makepair>";
+
+    fuzzyaudio::LicenseManager::Config makeLicenseConfig()
+    {
+        fuzzyaudio::LicenseManager::Config c;
+        c.productId       = "Click";
+        c.publicKey       = licensePublicKey;
+        c.vendorName      = "Fuzzy Audio";
+        c.appName         = "Click";
+        c.websiteName     = "fuzzyaudio.example";
+        c.websiteURL      = juce::URL ("https://fuzzyaudio.example");
+        c.activationToken = "click-license-v1";   // unique to Click
+
+        // The placeholder key verifies nothing, so every key a customer pastes
+        // would be rejected. Fail here in development rather than in the field.
+        jassert (! c.publicKey.containsChar ('<'));
+
+        return c;
+    }
 }
 
 ClickAudioProcessor::ClickAudioProcessor()
     : juce::AudioProcessor (BusesProperties()
                                 .withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
-      apvts (*this, nullptr, "CLICK", params::createLayout())
+      apvts (*this, nullptr, "CLICK", params::createLayout()),
+      license (makeLicenseConfig())
 {
     formatManager.registerBasicFormats();
 
