@@ -7,7 +7,7 @@ namespace
 {
     const juce::Colour offColour     { 0xff23262c };
     const juce::Colour regularColour { 0xff4b8ede };
-    const juce::Colour accentColour  { 0xffe8a33d };
+    const juce::Colour accentColour  { 0xffe6a23c };
     const juce::Colour disabledColour{ 0xff17191d };
     const juce::Colour outlineColour { 0xff34383f };
 }

@@ -119,9 +119,13 @@ private:
     std::unique_ptr<juce::FileChooser> chooser;
     juce::Label statusLabel;
 
+    const juce::Image logo;
+
     /** Backdrops filled in paint() and set in resized(). */
     juce::Rectangle<int> panelBounds;
     juce::Rectangle<int> adsrBounds;
+    juce::Rectangle<int> headerDivider;
+    juce::Rectangle<int> footerBounds;
 
     int activeSlot = accentSlot;
 

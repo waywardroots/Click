@@ -8,7 +8,7 @@ namespace
     const juce::Colour backgroundColour { 0xff1a1d22 };
     const juce::Colour sourceColour     { 0xff444a54 };
     const juce::Colour editedColour     { 0xff58c8a8 };
-    const juce::Colour handleColour     { 0xffe8a33d };
+    const juce::Colour handleColour     { 0xffe6a23c };
     const juce::Colour maskColour       { 0xcc111317 };
 
     constexpr int handleGrabRadius = 6;

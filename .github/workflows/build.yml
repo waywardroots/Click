@@ -107,4 +107,4 @@ jobs:
           cp -R build/Click_artefacts/Release/AU/Click.component \
                 ~/Library/Audio/Plug-Ins/Components/
           killall -9 AudioComponentRegistrar || true
-          auval -v aumu Clik Wayr
+          auval -v aumu Clik Fuzz

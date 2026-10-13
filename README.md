@@ -147,6 +147,7 @@ python3 tools/generate_clicks.py
 
 ```
 CMakeLists.txt              build definition
+logo.png                    icon drawn in the UI header (embedded via BinaryData)
 resources/clicks/*.wav      the ten stock clicks (embedded via BinaryData)
 tools/generate_clicks.py    regenerates the stock clicks
 Source/

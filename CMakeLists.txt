@@ -46,9 +46,9 @@ if(APPLE)
 endif()
 
 juce_add_plugin(Click
-    COMPANY_NAME            "Wayward Roots"
-    BUNDLE_ID               "com.waywardroots.click"
-    PLUGIN_MANUFACTURER_CODE Wayr
+    COMPANY_NAME            "Fuzzy Audio"
+    BUNDLE_ID               "com.fuzzyaudio.click"
+    PLUGIN_MANUFACTURER_CODE Fuzz
     PLUGIN_CODE             Clik
     FORMATS                 ${CLICK_FORMATS}
     PRODUCT_NAME            "Click"
@@ -83,7 +83,9 @@ if(NOT CLICK_STOCK_SAMPLES)
         "Run: python3 tools/generate_clicks.py")
 endif()
 
-juce_add_binary_data(ClickAssets SOURCES ${CLICK_STOCK_SAMPLES})
+juce_add_binary_data(ClickAssets SOURCES
+    ${CLICK_STOCK_SAMPLES}
+    "${CMAKE_CURRENT_SOURCE_DIR}/logo.png")
 set_target_properties(ClickAssets PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 
 target_compile_definitions(Click PUBLIC

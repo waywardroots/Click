@@ -6,7 +6,7 @@ namespace click
 namespace
 {
     const juce::Colour backgroundColour { 0xff1a1d22 };
-    const juce::Colour curveColour      { 0xffe8a33d };
+    const juce::Colour curveColour      { 0xffe6a23c };
     const juce::Colour gridColour       { 0xff2c3138 };
 }
 

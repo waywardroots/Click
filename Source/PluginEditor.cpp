@@ -1,5 +1,7 @@
 #include "PluginEditor.h"
 
+#include <BinaryData.h>
+
 namespace click
 {
 
@@ -7,8 +9,10 @@ namespace
 {
     const juce::Colour panelColour  { 0xff1e2127 };
     const juce::Colour windowColour { 0xff14161a };
-    const juce::Colour accentColour { 0xffe8a33d };
+    const juce::Colour accentColour { 0xffe6a23c };   // the orange of logo.png
     const juce::Colour textColour   { 0xffd8dce3 };
+
+    constexpr int headerHeight = 40;
 }
 
 ClickAudioProcessorEditor::ClickAudioProcessorEditor (ClickAudioProcessor& processorToUse)
@@ -16,7 +20,8 @@ ClickAudioProcessorEditor::ClickAudioProcessorEditor (ClickAudioProcessor& proce
       processor (processorToUse),
       stepGrid (processorToUse),
       waveform (processorToUse),
-      envelopeDisplay (processorToUse)
+      envelopeDisplay (processorToUse),
+      logo (juce::ImageCache::getFromMemory (BinaryData::logo_png, BinaryData::logo_pngSize))
 {
     setLookAndFeel (&lookAndFeel);
 
@@ -110,8 +115,8 @@ ClickAudioProcessorEditor::ClickAudioProcessorEditor (ClickAudioProcessor& proce
     startTimerHz (15);
 
     setResizable (true, true);
-    setResizeLimits (860, 720, 1600, 1130);
-    setSize (920, 782);
+    setResizeLimits (860, 751, 1600, 1161);
+    setSize (920, 813);
 }
 
 ClickAudioProcessorEditor::~ClickAudioProcessorEditor()
@@ -293,7 +298,12 @@ void ClickAudioProcessorEditor::paint (juce::Graphics& g)
 {
     g.fillAll (windowColour);
 
-    auto header = getLocalBounds().reduced (12).removeFromTop (40);
+    auto header = getLocalBounds().reduced (12).removeFromTop (headerHeight);
+
+    g.setImageResamplingQuality (juce::Graphics::highResamplingQuality);
+    g.drawImage (logo, header.removeFromLeft (headerHeight).toFloat(),
+                 juce::RectanglePlacement::centred);
+    header.removeFromLeft (10);
 
     g.setColour (textColour);
     g.setFont (juce::Font (juce::FontOptions (26.0f, juce::Font::bold)));
@@ -303,6 +313,10 @@ void ClickAudioProcessorEditor::paint (juce::Graphics& g)
     g.setFont (juce::Font (juce::FontOptions (12.0f)));
     g.drawText ("STEP SEQUENCED CLICK GENERATOR",
                 header.withTrimmedLeft (86), juce::Justification::centredLeft, false);
+
+    // rule separating the title from the plugin proper
+    g.setColour (accentColour.withAlpha (0.45f));
+    g.fillRect (headerDivider);
 
     // panel behind the slot editor
     g.setColour (panelColour);
@@ -316,15 +330,22 @@ void ClickAudioProcessorEditor::paint (juce::Graphics& g)
     g.setFont (juce::Font (juce::FontOptions (11.0f, juce::Font::bold)));
     g.drawText ("AMPLITUDE ENVELOPE",
                 adsrBounds.reduced (12, 8), juce::Justification::topLeft, false);
+
+    g.setColour (textColour.withAlpha (0.45f));
+    g.setFont (juce::Font (juce::FontOptions (11.0f)));
+    g.drawText (juce::String::fromUTF8 ("\xc2\xa9 2026 Fuzzy Audio"),
+                footerBounds, juce::Justification::centredRight, false);
 }
 
 void ClickAudioProcessorEditor::resized()
 {
     auto area = getLocalBounds().reduced (12);
 
-    auto header = area.removeFromTop (40);
+    auto header = area.removeFromTop (headerHeight);
     statusLabel.setBounds (header.removeFromRight (260));
 
+    area.removeFromTop (8);
+    headerDivider = area.removeFromTop (1);
     area.removeFromTop (8);
 
     // --- global control strip --------------------------------------------
@@ -356,6 +377,10 @@ void ClickAudioProcessorEditor::resized()
 
     stepGrid.setBounds (area.removeFromTop (96));
     area.removeFromTop (12);
+
+    // --- credit line along the very bottom --------------------------------
+    footerBounds = area.removeFromBottom (14);
+    area.removeFromBottom (8);
 
     // --- ADSR strip along the bottom --------------------------------------
     adsrBounds = area.removeFromBottom (130);
