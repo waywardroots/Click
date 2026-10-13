@@ -23,6 +23,26 @@ Ready-to-use reference implementations live next to this file:
 - `name` = buyer's name or email (non-empty).
 - `machine` = `"click-license-v1"` — the fixed activation token (paste-only).
 
+> **The token may not contain a comma, semicolon or space.** JUCE splits the
+> `mach` attribute on `,;` and space before comparing, so a token containing any
+> of them would be read as several tokens and the comparison would not be the one
+> you intended. `click-license-v1` is safe.
+
+## What the plug-in actually checks
+From `juce::OnlineUnlockStatus::applyKeyFile`, in order — these are the only
+things that can reject a well-formed key:
+
+1. `user` **and** `email` non-empty, else *"Credentials are invalid"*.
+2. `app` equals the plug-in's product id, else *"Wrong product ID"*.
+3. the machine's unique ID is readable (always true on a normal desktop).
+4. `mach` matches one of the plug-in's local machine IDs — which, in paste-only
+   mode, is the single activation token. The comparison is case-insensitive and
+   trimmed.
+
+`date` is only used by *expiring* keys, which these are not; it is otherwise
+ignored. The hex may be wrapped across lines: JUCE skips every non-hex character
+while parsing, which is why the 70-character wrapping is safe.
+
 ## Algorithm (must match byte-for-byte)
 1. Build a **single-line** XML string, attributes on the root `<key>` element:
    ```
@@ -98,6 +118,13 @@ long  name/email  payload=158B  hex=512  CRLF=yes  round-trips=yes
 So judge a key by the payload it decodes to, not by its length. What the length
 *does* tell you: a key that is exactly 256 hex characters **and** decodes to
 nothing readable is the old hashed code path, which never unlocks.
+
+**Comparing against `keygen sign`.** The C++ generator serialises the XML with
+JUCE's own writer, which prepends `<?xml version="1.0" encoding="UTF-8"?>` to the
+payload; the signers here emit the bare `<key .../>` element. Both verify, because
+the plug-in parses whatever it decrypts. So a byte-for-byte diff between a keygen
+key and a website key will differ in length and content even when both are
+correct — compare the *decoded* attributes instead.
 
 If your output still looks like `<key><user .../><product .../></key>` + 256 hex
 chars, the old code path is still running — replace it with the reference above.

@@ -28,7 +28,9 @@ namespace
         c.activationToken = "click-license-v1";   // unique to Click
 
         // The placeholder key verifies nothing, so every key a customer pastes
-        // would be rejected. Fail here in development rather than in the field.
+        // would be rejected with "Wrong product ID": an invalid RSAKey makes
+        // JUCE clear the value instead of decrypting it, leaving empty XML.
+        // Fail here in development rather than in the field.
         jassert (! c.publicKey.containsChar ('<'));
 
         return c;
