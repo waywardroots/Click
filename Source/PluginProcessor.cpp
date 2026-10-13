@@ -27,10 +27,13 @@ namespace
         c.websiteURL      = juce::URL ("https://fuzzyaudio.example");
         c.activationToken = "click-license-v1";   // unique to Click
 
-        // The placeholder key verifies nothing, so every key a customer pastes
-        // would be rejected with "Wrong product ID": an invalid RSAKey makes
-        // JUCE clear the value instead of decrypting it, leaving empty XML.
-        // Fail here in development rather than in the field.
+        // Until this is a real key, every key a customer pastes is rejected as
+        // "Credentials are invalid" - and not because the key is wrong.
+        // BigInteger::parseString ignores non-hex characters, so the
+        // placeholder below parses to the digits buried in its own words
+        // (0xdefaea) and RSAKey::isValid() says yes. JUCE then transforms the
+        // key with that nonsense modulus, gets bytes that are not UTF-8, and
+        // recovers an empty XML element whose user and email are empty.
         jassert (! c.publicKey.containsChar ('<'));
 
         return c;
